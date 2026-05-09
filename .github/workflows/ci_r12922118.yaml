@@ -32,7 +32,10 @@ jobs:
           set -o pipefail
           echo "### Prettier Check" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          (npm run format:check | tee -a $GITHUB_STEP_SUMMARY) || (echo '```' >> $GITHUB_STEP_SUMMARY && exit 1)
+          (npm run format:check | tee -a $GITHUB_STEP_SUMMARY) || {
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
           echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Run Tests
