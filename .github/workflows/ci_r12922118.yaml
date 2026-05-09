@@ -22,33 +22,24 @@ jobs:
         run: |
           echo "### 🔵 TypeScript Check" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          set +e
-          npm run typecheck | tee -a $GITHUB_STEP_SUMMARY
-          EXIT_CODE=${PIPESTATUS[0]}
-          set -e
+          npm run typecheck | tee -a $GITHUB_STEP_SUMMARY || TS_ERR=1
           echo '
 ```' >> $GITHUB_STEP_SUMMARY
-          exit $EXIT_CODE
+          if [ "$TS_ERR" = "1" ]; then exit 1; fi
 
       - name: Prettier check
         run: |
           echo "### 🟡 Prettier Check" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          set +e
-          npm run format:check | tee -a $GITHUB_STEP_SUMMARY
-          EXIT_CODE=${PIPESTATUS[0]}
-          set -e
+          npm run format:check | tee -a $GITHUB_STEP_SUMMARY || FMT_ERR=1
           echo '
 ```' >> $GITHUB_STEP_SUMMARY
-          exit $EXIT_CODE
+          if [ "$FMT_ERR" = "1" ]; then exit 1; fi
 
       - name: Run Tests
         run: |
           echo "### 🟢 Unit Tests" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          set +e
-          npm run test -- --reporter=verbose | tee -a $GITHUB_STEP_SUMMARY
-          EXIT_CODE=${PIPESTATUS[0]}
-          set -e
+          npm run test -- --reporter=verbose | tee -a $GITHUB_STEP_SUMMARY || TEST_ERR=1
           echo '```' >> $GITHUB_STEP_SUMMARY
-          exit $EXIT_CODE
+          if [ "$TEST_ERR" = "1" ]; then exit 1; fi
