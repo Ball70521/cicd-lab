@@ -19,30 +19,26 @@ jobs:
         run: npm install
 
       - name: TypeScript typecheck
+        # 加入 set -o pipefail 確保 npm 失敗時能被偵測到
         run: |
+          set -o pipefail
           echo "### TypeScript Check" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          # 如果失敗，就建立一個名為 .ts_fail 的檔案
-          npm run typecheck | tee -a $GITHUB_STEP_SUMMARY || touch .ts_fail
+          (npm run typecheck | tee -a $GITHUB_STEP_SUMMARY) || (echo '```' >> $GITHUB_STEP_SUMMARY && exit 1)
           echo '```' >> $GITHUB_STEP_SUMMARY
-          if [ -f .ts_fail ]; then exit 1; fi
 
       - name: Prettier check
         run: |
+          set -o pipefail
           echo "### Prettier Check" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          # 如果失敗，就建立一個名為 .fmt_fail 的檔案
-          npm run format:check | tee -a $GITHUB_STEP_SUMMARY || touch .fmt_fail
+          (npm run format:check | tee -a $GITHUB_STEP_SUMMARY) || (echo '```' >> $GITHUB_STEP_SUMMARY && exit 1)
           echo '```' >> $GITHUB_STEP_SUMMARY
-          if [ -f .fmt_fail ]; then exit 1; fi
 
       - name: Run Tests
         run: |
+          set -o pipefail
           echo "### Unit Tests" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-          # 如果失敗，就建立一個名為 .test_fail 的檔案
-          NO_COLOR=1 npm run test -- --reporter=verbose | tee -a $GITHUB_STEP_SUMMARY || touch .test_fail
+          (NO_COLOR=1 npm run test -- --reporter=verbose | tee -a $GITHUB_STEP_SUMMARY) || (echo "\`\`\`" >> $GITHUB_STEP_SUMMARY && exit 1)
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          if [ -f .test_fail ]; then exit 1; fi
-
-
