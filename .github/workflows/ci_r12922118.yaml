@@ -38,6 +38,6 @@ jobs:
         run: |
           echo "### Unit Tests" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-          npm run test -- --reporter=verbose | tee -a $GITHUB_STEP_SUMMARY || TEST_ERR=1
+          NO_COLOR=1 npm run test -- --reporter=verbose | tee -a $GITHUB_STEP_SUMMARY || TEST_ERR=1
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           if [ "$TEST_ERR" = "1" ]; then exit 1; fi
