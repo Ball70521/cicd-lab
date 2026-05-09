@@ -1,4 +1,4 @@
-name: CI
+name: CI Pipeline
 
 on: [push]
 
@@ -18,61 +18,37 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run TypeScript typecheck
-        run: npm run typecheck:report
+      - name: TypeScript typecheck
+        run: |
+          echo "### 🔵 TypeScript Check" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          set +e
+          npm run typecheck | tee -a $GITHUB_STEP_SUMMARY
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+          echo '
+```' >> $GITHUB_STEP_SUMMARY
+          exit $EXIT_CODE
 
-      - name: Upload TypeScript typecheck results
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: typecheck-results.txt
-          path: typecheck-results.txt
-
-      - name: Run Prettier check
-        run: npm run prettier:check:report
-
-      - name: Upload Prettier check results
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: prettier-check-results.txt
-          path: prettier-check-results.txt
+      - name: Prettier check
+        run: |
+          echo "### 🟡 Prettier Check" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          set +e
+          npm run format:check | tee -a $GITHUB_STEP_SUMMARY
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+          echo '
+```' >> $GITHUB_STEP_SUMMARY
+          exit $EXIT_CODE
 
       - name: Run Tests
-        run: npm run test:report
-
-      - name: Upload Test results
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-results.json
-          path: test-results.json
-
-      - name: Parse test results and upload to Summary
-        if: always()
         run: |
-          echo "Parsing test results..."
-          jq -r '
-            .results[] |
-            "\(.fullName): \(.state) (\(.duration) ms)"
-          ' test-results.json > test-summary.md
-          echo "Test Summary:"
-          cat test-summary.md
-          echo "Uploading test summary to GitHub Actions Summary..."
-          echo "<details><summary>Test Results</summary>" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Typecheck Results" >> $GITHUB_STEP_SUMMARY
-          echo "```" >> $GITHUB_STEP_SUMMARY
-          cat typecheck-results.txt >> $GITHUB_STEP_SUMMARY
-          echo "```" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Prettier Check Results" >> $GITHUB_STEP_SUMMARY
-          echo "```" >> $GITHUB_STEP_SUMMARY
-          cat prettier-check-results.txt >> $GITHUB_STEP_SUMMARY
-          echo "```" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "```" >> $GITHUB_STEP_SUMMARY
-          cat test-summary.md >> $GITHUB_STEP_SUMMARY
-          echo "```" >> $GITHUB_STEP_SUMMARY
-          echo "</details>" >> $GITHUB_STEP_SUMMARY
+          echo "### 🟢 Unit Tests" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          set +e
+          npm run test -- --reporter=verbose | tee -a $GITHUB_STEP_SUMMARY
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          exit $EXIT_CODE
