@@ -22,24 +22,27 @@ jobs:
         run: |
           echo "### TypeScript Check" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          npm run typecheck | tee -a $GITHUB_STEP_SUMMARY || TS_ERR=1
+          # 如果失敗，就建立一個名為 .ts_fail 的檔案
+          npm run typecheck | tee -a $GITHUB_STEP_SUMMARY || touch .ts_fail
           echo '```' >> $GITHUB_STEP_SUMMARY
-          if [ "$TS_ERR" = "1" ]; then exit 1; fi
+          if [ -f .ts_fail ]; then exit 1; fi
 
       - name: Prettier check
         run: |
           echo "### Prettier Check" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
-          npm run format:check | tee -a $GITHUB_STEP_SUMMARY || FMT_ERR=1
+          # 如果失敗，就建立一個名為 .fmt_fail 的檔案
+          npm run format:check | tee -a $GITHUB_STEP_SUMMARY || touch .fmt_fail
           echo '```' >> $GITHUB_STEP_SUMMARY
-          if [ "$FMT_ERR" = "1" ]; then exit 1; fi
+          if [ -f .fmt_fail ]; then exit 1; fi
 
       - name: Run Tests
         run: |
           echo "### Unit Tests" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-          NO_COLOR=1 npm run test -- --reporter=verbose | tee -a $GITHUB_STEP_SUMMARY || TEST_ERR=1
+          # 如果失敗，就建立一個名為 .test_fail 的檔案
+          NO_COLOR=1 npm run test -- --reporter=verbose | tee -a $GITHUB_STEP_SUMMARY || touch .test_fail
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          if [ "$TEST_ERR" = "1" ]; then exit 1; fi
+          if [ -f .test_fail ]; then exit 1; fi
 
 
